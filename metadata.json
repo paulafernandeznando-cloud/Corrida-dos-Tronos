@@ -1,0 +1,7 @@
+{
+  "name": "Corrida dos Tronos",
+  "description": "Conquiste os melhores pontos de corrida da sua cidade. Onde cada quilômetro te aproxima do trono.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

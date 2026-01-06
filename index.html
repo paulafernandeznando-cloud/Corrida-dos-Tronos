@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corrida dos Tronos - O Reino da Velocidade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Leaflet Routing Machine -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      /* Custom scrollbar for better aesthetics */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .leaflet-container {
+        z-index: 0;
+      }
+      /* Routing machine container customization */
+      .leaflet-routing-container {
+        background-color: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      /* Throne Icon Animations */
+      .throne-marker-wrapper {
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+        filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.2));
+      }
+      
+      .throne-marker-wrapper:hover {
+        transform: scale(1.3) translateY(-8px);
+        filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.9)); /* Gold glow */
+        z-index: 1000 !important;
+      }
+
+      /* Conquest/Celebration Animation Sequence */
+      .conquer-animation .throne-marker-wrapper {
+        animation: trophy-unlock 5s ease-in-out forwards;
+      }
+
+      /* The shockwaves (confetti-like burst effect) */
+      .conquer-animation::before,
+      .conquer-animation::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid #fbbf24;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        z-index: -1;
+        animation: shockwave-burst 1s ease-out forwards;
+        pointer-events: none;
+      }
+
+      .conquer-animation::after {
+        animation-delay: 0.2s;
+        border-color: #f59e0b;
+      }
+
+      @keyframes shockwave-burst {
+        0% {
+          width: 100%;
+          height: 100%;
+          opacity: 1;
+          border-width: 8px;
+        }
+        100% {
+          width: 400%;
+          height: 400%;
+          opacity: 0;
+          border-width: 0px;
+        }
+      }
+
+      /* Complex Trophy Unlock Sequence */
+      @keyframes trophy-unlock {
+        /* Phase 1: The Pop (Conquest) */
+        0% { transform: scale(1); }
+        10% { transform: scale(1.6) translateY(-25px) rotate(-5deg); filter: drop-shadow(0 0 40px gold); }
+        15% { transform: scale(0.9) translateY(5px) rotate(3deg); }
+        20% { transform: scale(1.3) translateY(-10px) rotate(-2deg); filter: drop-shadow(0 0 25px gold); }
+        25% { transform: scale(1); filter: drop-shadow(0 0 15px gold); }
+        
+        /* Phase 2: The Trophy Glow (Pulsing) */
+        35% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9)); }
+        45% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5)); }
+        55% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9)); }
+        65% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5)); }
+        75% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9)); }
+        85% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5)); }
+        95% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(0,0,0,0)); }
+      }
+
+      .user-location-icon .pulse-ring {
+        animation: pulse-blue 2s infinite;
+      }
+
+      @keyframes pulse-blue {
+        0% {
+          box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-50 text-slate-900 antialiased">
+    <div id="root"></div>
+  </body>
+</html>
