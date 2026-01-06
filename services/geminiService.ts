@@ -1,7 +1,6 @@
-import { GoogleGenAI } from "@google/genai";
-import { Coordinates, GeminiResponseData, Place, LeaderboardEntry } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { GoogleGenAI } from "@google/genai";
+import { Coordinates, GeminiResponseData, Place, LeaderboardEntry, GroundingChunk } from "../types";
 
 // Helper to generate mock leaderboard data for "Corrida dos Tronos"
 const generateMockLeaderboard = (): LeaderboardEntry[] => {
@@ -41,6 +40,8 @@ export const fetchRunningRoutes = async (
   location?: Coordinates
 ): Promise<GeminiResponseData> => {
   try {
+    // Initialize AI inside the call to ensure process.env.API_KEY is defined
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const model = "gemini-2.5-flash";
     
     // Construct a context-aware prompt that specifically requests JSON
@@ -90,7 +91,8 @@ export const fetchRunningRoutes = async (
     });
 
     const text = response.text || "";
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    // Access grounding chunks and cast to local type to avoid library version mismatches
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] | undefined;
 
     // Try to extract JSON from the text response
     let places: Place[] = [];
@@ -113,6 +115,7 @@ export const fetchRunningRoutes = async (
       }
     }
 
+    // Return the response data with correctly typed groundingChunks
     return {
       text,
       places,
